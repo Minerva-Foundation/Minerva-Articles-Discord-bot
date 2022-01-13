@@ -24,15 +24,23 @@ const sanityClient = Sanity({
 
 discordClient.on('ready', () => {
     logger.info(`Bot Logged in!`);
-    const query = '*[_type == "post"]'
+    const query: string = '*[_type == "post"]'
     sanityClient.listen(query).subscribe((update) => {
-        console.log(update);
+        const message: string = buildAnnouncement(update);
+        sendMessage(discordClient, message);
     });
-    //sendMessage(discordClient);
 });
 
-const sendMessage = (discordClient: any) => {
-    discordClient.channels.cache.get(process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID).send('Howdy!');
+const sendMessage = (discordClient: any, message: string) => {
+    discordClient.channels.cache.get(process.env.DISCORD_ANNOUNCEMENT_CHANNEL_ID).send(message);
+}
+
+const buildAnnouncement = (postData: any) : string => {
+    const postType: string = postData.transition
+    const type: string = postType === 'update' ? 'updated' : "posted"
+    const message: string = 'Hey @everyone, an article was just just ' + type + ' on the blog: ' + postData.result.title + '! Go check it out!'
+
+    return message
 }
 
 discordClient.login(process.env.BOT_TOKEN);
